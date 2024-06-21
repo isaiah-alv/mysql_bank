@@ -1,0 +1,89 @@
+Customers Table
+
+CREATE TABLE Customers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    login VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    gender ENUM('M', 'F', 'Other') NOT NULL,
+    DOB DATE NOT NULL,
+    street VARCHAR(255),
+    city VARCHAR(255),
+    state VARCHAR(2),
+    zipcode VARCHAR(10),
+    img BLOB
+);
+
+
+Sources Table
+
+CREATE TABLE Sources (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+Stores Table
+
+CREATE TABLE Stores (
+    sid INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255),
+    city VARCHAR(255),
+    state VARCHAR(2),
+    zipcode VARCHAR(10),
+    longitude DECIMAL(9,6),
+    latitude DECIMAL(9,6)
+);
+
+Transactions TABLE
+
+CREATE TABLE Transactions (
+    mid INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(255) UNIQUE NOT NULL,
+    cid INT NOT NULL,
+    type ENUM('Deposit', 'Withdraw') NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    sid INT,
+    mydatetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    note TEXT,
+    FOREIGN KEY (cid) REFERENCES Customers(id),
+    FOREIGN KEY (sid) REFERENCES Sources(id)
+);
+
+- 
+
+Query to select stores with location
+
+SELECT sid AS ID, name AS Name, address AS Address, 
+    city AS City, state AS State, zipcode AS Zipcode, 
+    CONCAT(longitude, ' ', latitude) AS 'Location(Latitude, Longitude)'
+FROM Stores
+WHERE latitude IS NOT NULL;
+
+- 
+
+Query to select transactions for a given customer
+
+SELECT mid AS ID, code AS Code, type AS Type, 
+    amount AS Amount, Sources.name AS Source, mydatetime AS DateTime, note AS Note 
+FROM Transactions 
+INNER JOIN Sources ON Transactions.sid = Sources.id 
+WHERE cid = '$id' 
+ORDER BY mid ASC;
+
+- 
+
+Query to select all customers
+
+SELECT * FROM Customers;
+
+
+Query to select names from Sources
+
+SELECT name FROM Sources;
+
+
+Query to insert a transaction (ensure $transaction_code, $id, $transaction_type, $transaction_amount, $note, $transaction_source are properly escaped in your PHP code)
+
+INSERT INTO Transactions 
+VALUES (NULL, '$transaction_code', $id, '$transaction_type', $transaction_amount, CURRENT_TIMESTAMP, '$note', $transaction_source);
